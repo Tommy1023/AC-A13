@@ -1,5 +1,5 @@
 import React from 'react';
-
+import useCartContext from '../CartContext';
 // TODO 7
 type BuildItemProps = {
   id: string,
@@ -21,6 +21,23 @@ const BuildItem: React.FC<BuildItemProps> = (props) => {
     onUpdateQuantity,
   } = props;
 
+  const { newProducts, updateInventory } = useCartContext();
+
+  const atMinusQuantity = () => {
+    if (quantity > 1) {
+      onUpdateQuantity(id, -1);
+      updateInventory(id, 1);
+    }
+  };
+
+  const atPlusQuantity = () => {
+    const productInventory = newProducts.find((product) => product.id === id);
+    if (productInventory.inventory > 0) {
+      onUpdateQuantity(id, 1);
+      updateInventory(id, -1);
+    }
+  };
+
   // 小計
   const lineItemPrice = price * quantity;
   return (
@@ -28,15 +45,18 @@ const BuildItem: React.FC<BuildItemProps> = (props) => {
       <div className="col-2">{title}</div>
       <div className="col-3">
         {/* FIXME：這裡有 bug，怎麼修好他呢? */}
-        <button onClick={() => onUpdateQuantity(id, quantity - 1)}>-</button>
+        <button onClick={() => atMinusQuantity()}>-</button>
         <span className="px-1">{quantity}</span>
-        <button onClick={() => onUpdateQuantity(id, quantity + 1)}>+</button>
+        <button onClick={() => atPlusQuantity()}>+</button>
       </div>
 
       <div className="col-2">{price}</div>
       <div className="col-3">{lineItemPrice}</div>
       <div className="col-2">
-        <button className="btn btn-danger w-100" onClick={() => onRemoveItem(id)}>
+        <button
+          className="btn btn-danger w-100"
+          onClick={() => onRemoveItem(id, quantity)}
+        >
           Remove
         </button>
       </div>
