@@ -21,22 +21,8 @@ const BuildItem: React.FC<BuildItemProps> = (props) => {
     onUpdateQuantity,
   } = props;
 
-  const { newProducts, updateInventory } = useCartContext();
-
-  const atMinusQuantity = () => {
-    if (quantity > 1) {
-      onUpdateQuantity(id, -1);
-      updateInventory(id, 1);
-    }
-  };
-
-  const atPlusQuantity = () => {
-    const productInventory = newProducts.find((product) => product.id === id);
-    if (productInventory.inventory > 0) {
-      onUpdateQuantity(id, 1);
-      updateInventory(id, -1);
-    }
-  };
+  const { newProducts } = useCartContext();
+  const productInventory = newProducts.find((product) => product.id === id);
 
   // 小計
   const lineItemPrice = price * quantity;
@@ -45,9 +31,16 @@ const BuildItem: React.FC<BuildItemProps> = (props) => {
       <div className="col-2">{title}</div>
       <div className="col-3">
         {/* FIXME：這裡有 bug，怎麼修好他呢? */}
-        <button onClick={() => atMinusQuantity()}>-</button>
+        <button disabled={quantity <= 1} onClick={() => onUpdateQuantity(id, -1)}>
+          -
+        </button>
         <span className="px-1">{quantity}</span>
-        <button onClick={() => atPlusQuantity()}>+</button>
+        <button
+          disabled={productInventory.inventory < 1}
+          onClick={() => onUpdateQuantity(id, 1)}
+        >
+          +
+        </button>
       </div>
 
       <div className="col-2">{price}</div>

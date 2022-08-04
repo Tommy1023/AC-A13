@@ -44,10 +44,8 @@ const Cart: React.FC<CartProps> = (props) => {
           />
         );
       })}
-      {haveCoupon.discount ? (
+      {haveCoupon.discount && (
         <div className="text-end">Discount:{haveCoupon.discount}</div>
-      ) : (
-        ''
       )}
       <div className="text-end">totalAmount:{totalAmount}</div>
       <button

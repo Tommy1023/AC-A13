@@ -1,7 +1,7 @@
 import React, { useCallback, memo, useMemo } from 'react';
 import ProductItem from './ProductItem';
 import { PRODUCTS } from './config';
-import Cart from './Cart';
+import Cart from './Cart/Cart';
 import Coupons from './Coupons';
 import type { LineItem, Product } from './types';
 import { CartContext } from './CartContext';
@@ -30,24 +30,6 @@ const ShoppingCart = () => {
     setTotalAmount(calcTotalAmount);
   }, [lineItems, haveCoupon]);
 
-  // TODO 5
-  const atUpdateQuantity = useCallback((id: string, add: Number) => {
-    // 增加數量
-    setLineItems((prev) => {
-      return prev.map((item: LineItem) => {
-        if (item.id === id) {
-          return {
-            id: item.id,
-            title: item.title,
-            price: item.price,
-            quantity: item.quantity + add,
-          };
-        }
-        return item;
-      });
-    });
-  }, []);
-
   const updateInventory = useCallback((id: String, add: Number) => {
     setNewProducts((prev) => {
       return prev.map((item: Product) => {
@@ -57,7 +39,7 @@ const ShoppingCart = () => {
             img: item.img,
             title: item.title,
             price: item.price,
-            inventory: item.inventory + add,
+            inventory: item.inventory - add,
           };
         }
         return item;
@@ -66,12 +48,33 @@ const ShoppingCart = () => {
   }, []);
 
   // TODO 5
+  const atUpdateQuantity = useCallback(
+    (id: string, add: Number) => {
+      // 增加數量
+      setLineItems((prev) => {
+        return prev.map((item: LineItem) => {
+          if (item.id === id) {
+            return {
+              id: item.id,
+              title: item.title,
+              price: item.price,
+              quantity: item.quantity + add,
+            };
+          }
+          return item;
+        });
+      });
+      updateInventory(id, add);
+    },
+    [updateInventory],
+  );
+
+  // TODO 5
   const atAddToCart = useCallback(
     (id: string) => {
       const foundItem = lineItems.find((data) => data.id === id);
       if (foundItem) {
         atUpdateQuantity(id, 1);
-        updateInventory(id, -1);
       } else {
         // 新增
         const foundProduct = PRODUCTS.find((data) => data.id === id);
@@ -83,7 +86,7 @@ const ShoppingCart = () => {
           quantity: 1,
         };
         setLineItems((prev) => prev.concat(lineItem));
-        updateInventory(id, -1);
+        updateInventory(id, 1);
       }
     },
     [atUpdateQuantity, lineItems, updateInventory],
@@ -93,18 +96,14 @@ const ShoppingCart = () => {
   const onRemoveItem = useCallback(
     (id: string, quantity: Number) => {
       setLineItems((prev) => prev.filter((item) => item.id !== id));
-      updateInventory(id, quantity);
+      updateInventory(id, quantity * -1);
     },
     [updateInventory],
   );
 
   // TODO
   const onRemoveCart = useCallback(() => {
-    setNewProducts(
-      PRODUCTS.map((product) => {
-        return product;
-      }),
-    );
+    setNewProducts(PRODUCTS);
     setLineItems([]);
     setHaveCoupon('');
   }, []);
@@ -118,9 +117,8 @@ const ShoppingCart = () => {
   const provideValue = useMemo(() => {
     return {
       newProducts,
-      updateInventory,
     };
-  }, [newProducts, updateInventory]);
+  }, [newProducts]);
 
   return (
     <CartContext.Provider value={provideValue}>
